@@ -1,8 +1,10 @@
-package olmbundle
+package olmbundle_test
 
 import (
 	"context"
 	"testing"
+
+	olmbundle "github.com/k8s-manifest-kit/renderer-olm-bundle/pkg"
 
 	. "github.com/onsi/gomega"
 )
@@ -13,12 +15,12 @@ func TestDirectorySourceDoesNotResolveCredentials(t *testing.T) {
 	g := NewWithT(t)
 	called := false
 
-	renderer, err := New([]Source{{
+	renderer, err := olmbundle.New([]olmbundle.Source{{
 		Bundle: directoryBundleRef,
-		Credentials: func(context.Context) (*Credentials, error) {
+		Credentials: func(context.Context) (*olmbundle.Credentials, error) {
 			called = true
 
-			return &Credentials{}, nil
+			return &olmbundle.Credentials{}, nil
 		},
 	}})
 	g.Expect(err).NotTo(HaveOccurred())

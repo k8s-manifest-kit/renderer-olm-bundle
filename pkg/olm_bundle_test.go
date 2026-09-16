@@ -6,14 +6,15 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/onsi/gomega"
-
 	"github.com/k8s-manifest-kit/engine/pkg/types"
 	"github.com/k8s-manifest-kit/pkg/util/cache"
-	olmbundle "github.com/k8s-manifest-kit/renderer-olm-bundle/pkg"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	olmbundle "github.com/k8s-manifest-kit/renderer-olm-bundle/pkg"
+
+	. "github.com/onsi/gomega"
 )
 
 const (
@@ -22,14 +23,31 @@ const (
 	testValue        = "true"
 )
 
-var (
-	configMapGVK     = schema.GroupVersionKind{Version: "v1", Kind: "ConfigMap"}
-	namespaceGVK     = schema.GroupVersionKind{Version: "v1", Kind: "Namespace"}
-	validatingGVK    = schema.GroupVersionKind{Group: "admissionregistration.k8s.io", Version: "v1", Kind: "ValidatingWebhookConfiguration"}
-	certificateGVK   = schema.GroupVersionKind{Group: "cert-manager.io", Version: "v1", Kind: "Certificate"}
-	issuerGVK        = schema.GroupVersionKind{Group: "cert-manager.io", Version: "v1", Kind: "Issuer"}
-	clusterIssuerGVK = schema.GroupVersionKind{Group: "cert-manager.io", Version: "v1", Kind: "ClusterIssuer"}
-)
+func configMapGVK() schema.GroupVersionKind {
+	return schema.GroupVersionKind{Version: "v1", Kind: "ConfigMap"}
+}
+
+func namespaceGVK() schema.GroupVersionKind {
+	return schema.GroupVersionKind{Version: "v1", Kind: "Namespace"}
+}
+
+func validatingGVK() schema.GroupVersionKind {
+	return schema.GroupVersionKind{
+		Group: "admissionregistration.k8s.io", Version: "v1", Kind: "ValidatingWebhookConfiguration",
+	}
+}
+
+func certificateGVK() schema.GroupVersionKind {
+	return schema.GroupVersionKind{Group: "cert-manager.io", Version: "v1", Kind: "Certificate"}
+}
+
+func issuerGVK() schema.GroupVersionKind {
+	return schema.GroupVersionKind{Group: "cert-manager.io", Version: "v1", Kind: "Issuer"}
+}
+
+func clusterIssuerGVK() schema.GroupVersionKind {
+	return schema.GroupVersionKind{Group: "cert-manager.io", Version: "v1", Kind: "ClusterIssuer"}
+}
 
 func TestNewAndProcessReturnsUnstructuredObjects(t *testing.T) {
 	g := NewWithT(t)
@@ -49,8 +67,8 @@ func TestNewAndProcessReturnsUnstructuredObjects(t *testing.T) {
 		g.Expect(object.GetKind()).NotTo(BeEmpty())
 	}
 
-	g.Expect(findObject(objects, configMapGVK, "simple-operator-config")).NotTo(BeNil())
-	g.Expect(findGVK(objects, namespaceGVK)).To(HaveLen(1))
+	g.Expect(findObject(objects, configMapGVK(), "simple-operator-config")).NotTo(BeNil())
+	g.Expect(findGVK(objects, namespaceGVK())).To(HaveLen(1))
 }
 
 func TestProcessAppliesPipelineOptions(t *testing.T) {
@@ -64,14 +82,18 @@ func TestProcessAppliesPipelineOptions(t *testing.T) {
 			return true, nil
 		}),
 		olmbundle.WithFilter(func(_ context.Context, object unstructured.Unstructured) (bool, error) {
-			return object.GroupVersionKind() == configMapGVK, nil
+			return object.GroupVersionKind() == configMapGVK(), nil
 		}),
-		olmbundle.WithTransformer(func(_ context.Context, object unstructured.Unstructured) (unstructured.Unstructured, error) {
+		olmbundle.WithTransformer(func(
+			_ context.Context, object unstructured.Unstructured,
+		) (unstructured.Unstructured, error) {
 			object.SetLabels(map[string]string{"test": testValue})
 
 			return object, nil
 		}),
-		olmbundle.WithPostRenderer(func(_ context.Context, objects []unstructured.Unstructured) ([]unstructured.Unstructured, error) {
+		olmbundle.WithPostRenderer(func(
+			_ context.Context, objects []unstructured.Unstructured,
+		) ([]unstructured.Unstructured, error) {
 			for i := range objects {
 				annotations := objects[i].GetAnnotations()
 				if annotations == nil {
@@ -91,7 +113,7 @@ func TestProcessAppliesPipelineOptions(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(selectorCalled).To(BeTrue())
 	g.Expect(objects).To(HaveLen(1))
-	g.Expect(objects[0].GroupVersionKind()).To(Equal(configMapGVK))
+	g.Expect(objects[0].GroupVersionKind()).To(Equal(configMapGVK()))
 	g.Expect(objects[0].GetLabels()).To(Equal(map[string]string{"test": testValue}))
 	g.Expect(objects[0].GetAnnotations()).To(And(
 		HaveKeyWithValue("post-rendered", "true"),
@@ -110,10 +132,12 @@ func TestProcessDoesNotInjectCertificateManagement(t *testing.T) {
 
 	objects, err := renderer.Process(t.Context(), nil)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(findGVK(objects, validatingGVK)).NotTo(BeEmpty())
+	g.Expect(findGVK(objects, validatingGVK())).NotTo(BeEmpty())
 
 	for _, object := range objects {
-		g.Expect(object.GroupVersionKind()).NotTo(BeElementOf(certificateGVK, issuerGVK, clusterIssuerGVK))
+		g.Expect(object.GroupVersionKind()).NotTo(BeElementOf(
+			certificateGVK(), issuerGVK(), clusterIssuerGVK(),
+		))
 		for key := range object.GetAnnotations() {
 			g.Expect(strings.HasPrefix(key, "cert-manager.io/")).To(BeFalse())
 			g.Expect(key).NotTo(Equal("service.beta.openshift.io/inject-cabundle"))
@@ -152,7 +176,11 @@ func TestContextCancellation(t *testing.T) {
 	g.Expect(err.Error()).To(ContainSubstring("context"))
 }
 
-func findObject(objects []unstructured.Unstructured, gvk schema.GroupVersionKind, name string) *unstructured.Unstructured {
+func findObject(
+	objects []unstructured.Unstructured,
+	gvk schema.GroupVersionKind,
+	name string,
+) *unstructured.Unstructured {
 	index := slices.IndexFunc(objects, func(object unstructured.Unstructured) bool {
 		return object.GroupVersionKind() == gvk && object.GetName() == name
 	})

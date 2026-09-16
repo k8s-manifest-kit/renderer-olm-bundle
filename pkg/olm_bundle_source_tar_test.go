@@ -1,3 +1,4 @@
+//nolint:testpackage,wrapcheck // Tests exercise unexported tar source helpers and return fixture errors directly.
 package olmbundle
 
 import (
@@ -8,12 +9,15 @@ import (
 	"path/filepath"
 	"testing"
 
-	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	. "github.com/onsi/gomega"
 )
 
-var tarConfigMapGVK = schema.GroupVersionKind{Version: "v1", Kind: "ConfigMap"}
+func tarConfigMapGVK() schema.GroupVersionKind {
+	return schema.GroupVersionKind{Version: "v1", Kind: "ConfigMap"}
+}
 
 func TestUntarRejectsUnsafePaths(t *testing.T) {
 	for _, name := range []string{"../outside", "/absolute"} {
@@ -41,7 +45,7 @@ func TestTarSource(t *testing.T) {
 
 	objects, err := renderer.Process(t.Context(), nil)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(findObject(objects, tarConfigMapGVK, "simple-operator-config")).NotTo(BeNil())
+	g.Expect(findObject(objects, tarConfigMapGVK(), "simple-operator-config")).NotTo(BeNil())
 }
 
 func tarBytes(t *testing.T, name string, contents []byte) *bytes.Reader {
@@ -63,7 +67,7 @@ func tarBytes(t *testing.T, name string, contents []byte) *bytes.Reader {
 }
 
 func writeTar(path, sourceDir string) error {
-	file, err := os.Create(path)
+	file, err := os.Create(path) //nolint:gosec // test helper writes to its explicit temporary path.
 	if err != nil {
 		return err
 	}
@@ -97,7 +101,7 @@ func writeTar(path, sourceDir string) error {
 			return nil
 		}
 
-		contents, err := os.Open(path)
+		contents, err := os.Open(path) //nolint:gosec // test helper reads its explicit fixture path.
 		if err != nil {
 			return err
 		}
@@ -111,7 +115,11 @@ func writeTar(path, sourceDir string) error {
 	})
 }
 
-func findObject(objects []unstructured.Unstructured, gvk schema.GroupVersionKind, name string) *unstructured.Unstructured {
+func findObject(
+	objects []unstructured.Unstructured,
+	gvk schema.GroupVersionKind,
+	name string,
+) *unstructured.Unstructured {
 	for i := range objects {
 		if objects[i].GroupVersionKind() == gvk && objects[i].GetName() == name {
 			return &objects[i]

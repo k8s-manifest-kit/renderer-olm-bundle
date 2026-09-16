@@ -163,6 +163,7 @@ func (r *Renderer) renderSingle(ctx context.Context, holder *sourceHolder) ([]un
 		r.cache.Sync()
 		if cached, found := r.cache.Get(spec); found {
 			r.annotate(cached, "", types.RenderOriginCache)
+
 			return cached, nil
 		}
 	}
@@ -208,7 +209,7 @@ func (r *Renderer) credentials(ctx context.Context, holder *sourceHolder) (*Cred
 	if holder.Credentials == nil ||
 		holder.ref.transport == transportDir ||
 		holder.ref.transport == transportTar {
-		return nil, nil
+		return nil, nil //nolint:nilnil // nil is the anonymous credential result.
 	}
 
 	credentials, err := holder.Credentials(ctx)

@@ -23,7 +23,8 @@ jobs:
           go-version-file: go.mod
 
       - name: Run checks
-        run: make check
+        run: |
+          make check
 
       - name: Verify formatting
         run: |
@@ -43,4 +44,5 @@ jobs:
           go-version-file: go.mod
 
       - name: Run tests
-        run: make test
+        run: |
+          make test

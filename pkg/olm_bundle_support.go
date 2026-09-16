@@ -16,6 +16,8 @@ var (
 	ErrUnknownTransport = errors.New("unknown bundle transport")
 )
 
+const renderOptionCapacity = 2
+
 type transport int
 
 const (
@@ -62,6 +64,7 @@ func parseTransportRef(value string) (transportRef, error) {
 
 type sourceHolder struct {
 	Source
+
 	ref transportRef
 }
 
@@ -72,11 +75,12 @@ func (h *sourceHolder) Validate() error {
 	}
 
 	h.ref = ref
+
 	return nil
 }
 
 func (s Source) renderOptions() []registryv1.RenderOption {
-	options := make([]registryv1.RenderOption, 0, 2)
+	options := make([]registryv1.RenderOption, 0, renderOptionCapacity)
 	if len(s.TargetNamespaces) > 0 {
 		options = append(options, registryv1.WithTargetNamespaces(s.TargetNamespaces...))
 	}

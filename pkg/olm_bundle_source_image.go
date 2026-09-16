@@ -2,6 +2,7 @@ package olmbundle
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -9,11 +10,13 @@ import (
 	"github.com/joelanford/library-olm/image"
 	imagebundle "github.com/joelanford/library-olm/image/bundle"
 	ocispecv1 "github.com/opencontainers/image-spec/specs-go/v1"
-	dockerTransport "go.podman.io/image/v5/docker"
-	archiveTransport "go.podman.io/image/v5/oci/archive"
-	layoutTransport "go.podman.io/image/v5/oci/layout"
-	imageTypes "go.podman.io/image/v5/types"
+	"go.podman.io/image/v5/docker"
+	"go.podman.io/image/v5/oci/archive"
+	"go.podman.io/image/v5/oci/layout"
+	"go.podman.io/image/v5/types"
 )
+
+var errImageHandlerMismatch = errors.New("image does not match handler")
 
 type imageBundleSource struct {
 	ref  transportRef
@@ -33,24 +36,24 @@ func (s *imageBundleSource) readImage(ctx context.Context) (registryv1.Bundle, e
 	return readFromImage(ctx, imgRef, buildSystemContext(s.opts))
 }
 
-func parseImageReference(ref transportRef) (imageTypes.ImageReference, error) {
+func parseImageReference(ref transportRef) (types.ImageReference, error) {
 	switch ref.transport {
 	case transportDocker:
-		imgRef, err := dockerTransport.ParseReference("//" + ref.ref)
+		imgRef, err := docker.ParseReference("//" + ref.ref)
 		if err != nil {
 			return nil, fmt.Errorf("parsing docker reference: %w", err)
 		}
 
 		return imgRef, nil
 	case transportOCI:
-		imgRef, err := layoutTransport.ParseReference(ref.ref)
+		imgRef, err := layout.ParseReference(ref.ref)
 		if err != nil {
 			return nil, fmt.Errorf("parsing oci layout reference: %w", err)
 		}
 
 		return imgRef, nil
 	case transportOCIArchive:
-		imgRef, err := archiveTransport.ParseReference(ref.ref)
+		imgRef, err := archive.ParseReference(ref.ref)
 		if err != nil {
 			return nil, fmt.Errorf("parsing oci-archive reference: %w", err)
 		}
@@ -63,11 +66,11 @@ func parseImageReference(ref transportRef) (imageTypes.ImageReference, error) {
 	}
 }
 
-func buildSystemContext(opts sourceOptions) *imageTypes.SystemContext {
-	sysCtx := &imageTypes.SystemContext{}
+func buildSystemContext(opts sourceOptions) *types.SystemContext {
+	sysCtx := &types.SystemContext{}
 
 	if !opts.tlsVerify {
-		sysCtx.DockerInsecureSkipTLSVerify = imageTypes.OptionalBoolTrue
+		sysCtx.DockerInsecureSkipTLSVerify = types.OptionalBoolTrue
 		sysCtx.OCIInsecureSkipTLSVerify = true
 	}
 	if opts.certDir != "" {
@@ -75,9 +78,9 @@ func buildSystemContext(opts sourceOptions) *imageTypes.SystemContext {
 	}
 	if opts.credentials == nil {
 		// A non-nil auth config prevents Podman from consulting ambient stores.
-		sysCtx.DockerAuthConfig = &imageTypes.DockerAuthConfig{}
+		sysCtx.DockerAuthConfig = &types.DockerAuthConfig{}
 	} else if !opts.credentials.ambient {
-		sysCtx.DockerAuthConfig = &imageTypes.DockerAuthConfig{
+		sysCtx.DockerAuthConfig = &types.DockerAuthConfig{
 			Username: opts.credentials.Username,
 			Password: opts.credentials.Password,
 		}
@@ -88,8 +91,8 @@ func buildSystemContext(opts sourceOptions) *imageTypes.SystemContext {
 
 func readFromImage(
 	ctx context.Context,
-	imgRef imageTypes.ImageReference,
-	sysCtx *imageTypes.SystemContext,
+	imgRef types.ImageReference,
+	sysCtx *types.SystemContext,
 ) (registryv1.Bundle, error) {
 	client, err := image.NewContainersImageRepository(
 		ctx,
@@ -154,7 +157,7 @@ func resolveAndMatch(
 		return ocispecv1.Descriptor{}, nil, fmt.Errorf("checking image type: %w", err)
 	}
 	if !matched {
-		return ocispecv1.Descriptor{}, nil, fmt.Errorf("image does not match %s handler", handler.Name())
+		return ocispecv1.Descriptor{}, nil, fmt.Errorf("%w: %s", errImageHandlerMismatch, handler.Name())
 	}
 
 	return desc, manifestBytes, nil

@@ -14,6 +14,18 @@ import (
 	"go.podman.io/image/v5/pkg/compression"
 )
 
+var (
+	errInvalidTarPath      = errors.New("invalid tar path")
+	errTarLinksUnsupported = errors.New("tar links are not supported")
+	errTarFileTooLarge     = errors.New("tar file exceeds size limit")
+)
+
+const (
+	directoryMode  = 0750
+	fileMode       = 0600
+	maxTarFileSize = 100 * 1024 * 1024
+)
+
 type tarBundleSource struct {
 	path string
 }
@@ -21,8 +33,6 @@ type tarBundleSource struct {
 func (s *tarBundleSource) Read(ctx context.Context) (registryv1.Bundle, error) {
 	return readFromTar(ctx, s.path)
 }
-
-const maxTarFileSize = 100 * 1024 * 1024
 
 func readFromTar(ctx context.Context, path string) (registryv1.Bundle, error) {
 	tmpDir, err := os.MkdirTemp("", "olm-bundle-tar-")
@@ -90,7 +100,7 @@ func untar(ctx context.Context, reader io.Reader, dest string) error {
 func safeTarPath(name string) (string, error) {
 	cleanName := filepath.Clean(name)
 	if filepath.IsAbs(cleanName) || cleanName == ".." || strings.HasPrefix(cleanName, ".."+string(os.PathSeparator)) {
-		return "", fmt.Errorf("invalid tar path: %s", name)
+		return "", fmt.Errorf("%w: %s", errInvalidTarPath, name)
 	}
 
 	return cleanName, nil
@@ -99,13 +109,15 @@ func safeTarPath(name string) (string, error) {
 func extractTarEntry(reader io.Reader, target string, header *tar.Header) error {
 	switch header.Typeflag {
 	case tar.TypeDir:
-		if err := os.MkdirAll(target, 0750); err != nil {
+		if err := os.MkdirAll(target, directoryMode); err != nil {
 			return fmt.Errorf("creating directory %q: %w", header.Name, err)
 		}
 	case tar.TypeReg:
 		return extractTarFile(reader, target, header)
 	case tar.TypeSymlink, tar.TypeLink:
-		return fmt.Errorf("tar links are not supported: %s", header.Name)
+		return fmt.Errorf("%w: %s", errTarLinksUnsupported, header.Name)
+	default:
+		return nil
 	}
 
 	return nil
@@ -113,16 +125,16 @@ func extractTarEntry(reader io.Reader, target string, header *tar.Header) error 
 
 func extractTarFile(reader io.Reader, target string, header *tar.Header) error {
 	if header.Size < 0 || header.Size > maxTarFileSize {
-		return fmt.Errorf("tar file %q exceeds %d-byte limit", header.Name, maxTarFileSize)
+		return fmt.Errorf("%w: %q exceeds %d-byte limit", errTarFileTooLarge, header.Name, maxTarFileSize)
 	}
-	if err := os.MkdirAll(filepath.Dir(target), 0750); err != nil {
+	if err := os.MkdirAll(filepath.Dir(target), directoryMode); err != nil {
 		return fmt.Errorf("creating parent directory for %q: %w", header.Name, err)
 	}
 
 	outFile, err := os.OpenFile( //nolint:gosec // target is confined below the temporary destination.
 		target,
 		os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
-		0600,
+		fileMode,
 	)
 	if err != nil {
 		return fmt.Errorf("creating tar file %q: %w", header.Name, err)

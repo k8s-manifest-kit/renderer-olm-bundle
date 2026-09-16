@@ -11,16 +11,20 @@ GOLANGCI ?= go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLA
 GOVULNCHECK_VERSION ?= latest
 GOVULNCHECK ?= go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION)
 
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
 else
 GOBIN=$(shell go env GOBIN)
 endif
 
+
 ifndef ignore-not-found
   ignore-not-found = false
 endif
 
+# Setting SHELL to bash allows bash commands to be executed by recipes.
+# Options are set to exit when a recipe line exits non-zero or a piped command fails.
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
@@ -34,7 +38,7 @@ clean:
 
 .PHONY: fmt
 fmt:
-	@$(GOLANGCI) fmt --config .golangci.yml ./pkg/...
+	@$(GOLANGCI) fmt --config .golangci.yml
 	go fmt ./...
 
 .PHONY: test
@@ -80,11 +84,11 @@ deps/update: deps/update-internal deps/update-gomega-matchers deps/update-direct
 
 .PHONY: lint
 lint:
-	@$(GOLANGCI) run --config .golangci.yml --timeout $(LINT_TIMEOUT) ./pkg/...
+	@$(GOLANGCI) run --config .golangci.yml --timeout $(LINT_TIMEOUT)
 
 .PHONY: lint/fix
 lint/fix:
-	@$(GOLANGCI) run --config .golangci.yml --timeout $(LINT_TIMEOUT) --fix ./pkg/...
+	@$(GOLANGCI) run --config .golangci.yml --timeout $(LINT_TIMEOUT) --fix
 
 .PHONY: vulncheck
 vulncheck:

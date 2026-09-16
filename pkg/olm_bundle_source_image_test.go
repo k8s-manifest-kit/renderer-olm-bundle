@@ -1,11 +1,13 @@
+//nolint:testpackage // Tests exercise unexported image source helpers.
 package olmbundle
 
 import (
 	"context"
 	"testing"
 
+	"go.podman.io/image/v5/types"
+
 	. "github.com/onsi/gomega"
-	imageTypes "go.podman.io/image/v5/types"
 )
 
 func TestBuildSystemContextCredentials(t *testing.T) {
@@ -17,16 +19,16 @@ func TestBuildSystemContextCredentials(t *testing.T) {
 	tests := []struct {
 		name        string
 		credentials *Credentials
-		want        *imageTypes.DockerAuthConfig
+		want        *types.DockerAuthConfig
 	}{
 		{
 			name: "nil credentials are anonymous",
-			want: &imageTypes.DockerAuthConfig{},
+			want: &types.DockerAuthConfig{},
 		},
 		{
 			name:        "explicit credentials",
 			credentials: &Credentials{Username: "user", Password: "pass"},
-			want:        &imageTypes.DockerAuthConfig{Username: "user", Password: "pass"},
+			want:        &types.DockerAuthConfig{Username: "user", Password: "pass"},
 		},
 		{
 			name:        "ambient credentials are explicit",
@@ -35,7 +37,7 @@ func TestBuildSystemContextCredentials(t *testing.T) {
 		{
 			name:        "empty credentials are anonymous",
 			credentials: &Credentials{},
-			want:        &imageTypes.DockerAuthConfig{},
+			want:        &types.DockerAuthConfig{},
 		},
 	}
 

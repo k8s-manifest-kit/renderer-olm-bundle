@@ -1,3 +1,4 @@
+//nolint:testpackage // Tests exercise unexported transport parsing helpers.
 package olmbundle
 
 import (
@@ -15,7 +16,12 @@ func TestParseTransportRef(t *testing.T) {
 		ref       string
 		err       error
 	}{
-		{name: "docker", value: "docker://quay.io/example/bundle:v1", transport: transportDocker, ref: "quay.io/example/bundle:v1"},
+		{
+			name:      "docker",
+			value:     "docker://quay.io/example/bundle:v1",
+			transport: transportDocker,
+			ref:       "quay.io/example/bundle:v1",
+		},
 		{name: "oci", value: "oci:/tmp/layout", transport: transportOCI, ref: "/tmp/layout"},
 		{name: "oci archive", value: "oci-archive:/tmp/bundle.oci", transport: transportOCIArchive, ref: "/tmp/bundle.oci"},
 		{name: "directory", value: "dir:./bundle", transport: transportDir, ref: "./bundle"},
