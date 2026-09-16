@@ -34,7 +34,7 @@ clean:
 
 .PHONY: fmt
 fmt:
-	@$(GOLANGCI) fmt --config .golangci.yml
+	@$(GOLANGCI) fmt --config .golangci.yml ./pkg/...
 	go fmt ./...
 
 .PHONY: test
@@ -80,11 +80,11 @@ deps/update: deps/update-internal deps/update-gomega-matchers deps/update-direct
 
 .PHONY: lint
 lint:
-	@$(GOLANGCI) run --config .golangci.yml --timeout $(LINT_TIMEOUT)
+	@$(GOLANGCI) run --config .golangci.yml --timeout $(LINT_TIMEOUT) ./pkg/...
 
 .PHONY: lint/fix
 lint/fix:
-	@$(GOLANGCI) run --config .golangci.yml --timeout $(LINT_TIMEOUT) --fix
+	@$(GOLANGCI) run --config .golangci.yml --timeout $(LINT_TIMEOUT) --fix ./pkg/...
 
 .PHONY: vulncheck
 vulncheck:
