@@ -1,4 +1,4 @@
-package orb
+package olmbundle
 
 import (
 	"github.com/k8s-manifest-kit/pkg/util/cache"
@@ -6,7 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-type orbSpec struct {
+type olmBundleSpec struct {
 	Bundle           string
 	TargetNamespaces []string
 	DeploymentConfig any

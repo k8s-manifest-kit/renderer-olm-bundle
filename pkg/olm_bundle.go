@@ -1,4 +1,4 @@
-package orb
+package olmbundle
 
 import (
 	"context"
@@ -14,11 +14,11 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
-const rendererType = "orb"
+const rendererType = "olm-bundle"
 
 // Source defines a registry+v1 OLM bundle source.
 type Source struct {
-	// Bundle is an Orb transport reference. Supported transports are docker://,
+	// Bundle is an OLM bundle transport reference. Supported transports are docker://,
 	// oci:, oci-archive:, dir:, and tar:.
 	Bundle string
 
@@ -35,7 +35,7 @@ type Source struct {
 	Credentials func(context.Context) (*Credentials, error)
 
 	// TLSVerify controls registry TLS verification. It defaults to false to match
-	// Orb's current source behavior.
+	// the renderer's current source behavior.
 	TLSVerify bool
 
 	// CertDir is the directory containing Docker registry TLS certificates.
@@ -69,14 +69,14 @@ func AmbientCredentials(context.Context) (*Credentials, error) {
 // SourceSelector decides whether a Source should be rendered.
 type SourceSelector = func(ctx context.Context, source Source) (bool, error)
 
-// Renderer handles Orb registry+v1 bundle rendering.
+// Renderer handles OLM registry+v1 bundle rendering.
 type Renderer struct {
 	inputs []*sourceHolder
 	opts   RendererOptions
 	cache  cache.Interface[[]unstructured.Unstructured]
 }
 
-// New creates a new Orb renderer with the given inputs and options.
+// New creates a new OLM bundle renderer with the given inputs and options.
 func New(inputs []Source, opts ...RendererOption) (*Renderer, error) {
 	rendererOpts := RendererOptions{
 		Filters:      make([]types.Filter, 0),
@@ -106,14 +106,14 @@ func New(inputs []Source, opts ...RendererOption) (*Renderer, error) {
 }
 
 // Process executes the rendering logic for all configured inputs.
-// Render-time values are ignored because Orb bundles are not templates.
+// Render-time values are ignored because OLM bundles are not templates.
 func (r *Renderer) Process(ctx context.Context, _ types.Values) ([]unstructured.Unstructured, error) {
 	allObjects := make([]unstructured.Unstructured, 0)
 
 	for _, holder := range r.inputs {
 		selected, err := pipeline.ApplySourceSelectors(ctx, holder.Source, r.opts.SourceSelectors)
 		if err != nil {
-			return nil, fmt.Errorf("source selector error for Orb bundle %s: %w", holder.Bundle, err)
+			return nil, fmt.Errorf("source selector error for OLM bundle %s: %w", holder.Bundle, err)
 		}
 		if !selected {
 			continue
@@ -121,12 +121,12 @@ func (r *Renderer) Process(ctx context.Context, _ types.Values) ([]unstructured.
 
 		objects, err := r.renderSingle(ctx, holder)
 		if err != nil {
-			return nil, fmt.Errorf("error rendering Orb bundle %s: %w", holder.Bundle, err)
+			return nil, fmt.Errorf("error rendering OLM bundle %s: %w", holder.Bundle, err)
 		}
 
 		objects, err = pipeline.ApplyPostRenderers(ctx, objects, holder.PostRenderers)
 		if err != nil {
-			return nil, fmt.Errorf("source post-renderer error for Orb bundle %s: %w", holder.Bundle, err)
+			return nil, fmt.Errorf("source post-renderer error for OLM bundle %s: %w", holder.Bundle, err)
 		}
 
 		allObjects = append(allObjects, objects...)
@@ -151,7 +151,7 @@ func (r *Renderer) renderSingle(ctx context.Context, holder *sourceHolder) ([]un
 		return nil, fmt.Errorf("context cancelled before render: %w", err)
 	}
 
-	spec := orbSpec{
+	spec := olmBundleSpec{
 		Bundle:           holder.Bundle,
 		TargetNamespaces: slices.Clone(holder.TargetNamespaces),
 		DeploymentConfig: holder.DeploymentConfig,

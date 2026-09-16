@@ -4,7 +4,7 @@ metadata:
   name: simple-operator.v1.0.0
 spec:
   displayName: Simple Operator
-  description: A minimal bundle used by renderer-orb tests.
+  description: A minimal bundle used by renderer-olm-bundle tests.
   version: 1.0.0
   installModes:
     - type: AllNamespaces

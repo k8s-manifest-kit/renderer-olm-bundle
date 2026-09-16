@@ -1,4 +1,4 @@
-package orb_test
+package olmbundle_test
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/k8s-manifest-kit/engine/pkg/types"
 	"github.com/k8s-manifest-kit/pkg/util/cache"
-	orb "github.com/k8s-manifest-kit/renderer-orb/pkg"
+	olmbundle "github.com/k8s-manifest-kit/renderer-olm-bundle/pkg"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -34,7 +34,7 @@ var (
 func TestNewAndProcessReturnsUnstructuredObjects(t *testing.T) {
 	g := NewWithT(t)
 
-	renderer, err := orb.New([]orb.Source{{
+	renderer, err := olmbundle.New([]olmbundle.Source{{
 		Bundle: simpleBundleRef,
 	}})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -42,7 +42,7 @@ func TestNewAndProcessReturnsUnstructuredObjects(t *testing.T) {
 	objects, err := renderer.Process(t.Context(), nil)
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(objects).NotTo(BeEmpty())
-	g.Expect(renderer.Name()).To(Equal("orb"))
+	g.Expect(renderer.Name()).To(Equal("olm-bundle"))
 
 	for _, object := range objects {
 		g.Expect(object.GetAPIVersion()).NotTo(BeEmpty())
@@ -57,21 +57,21 @@ func TestProcessAppliesPipelineOptions(t *testing.T) {
 	g := NewWithT(t)
 	selectorCalled := false
 
-	renderer, err := orb.New([]orb.Source{{Bundle: simpleBundleRef}},
-		orb.WithSourceSelector(func(context.Context, orb.Source) (bool, error) {
+	renderer, err := olmbundle.New([]olmbundle.Source{{Bundle: simpleBundleRef}},
+		olmbundle.WithSourceSelector(func(context.Context, olmbundle.Source) (bool, error) {
 			selectorCalled = true
 
 			return true, nil
 		}),
-		orb.WithFilter(func(_ context.Context, object unstructured.Unstructured) (bool, error) {
+		olmbundle.WithFilter(func(_ context.Context, object unstructured.Unstructured) (bool, error) {
 			return object.GroupVersionKind() == configMapGVK, nil
 		}),
-		orb.WithTransformer(func(_ context.Context, object unstructured.Unstructured) (unstructured.Unstructured, error) {
+		olmbundle.WithTransformer(func(_ context.Context, object unstructured.Unstructured) (unstructured.Unstructured, error) {
 			object.SetLabels(map[string]string{"test": testValue})
 
 			return object, nil
 		}),
-		orb.WithPostRenderer(func(_ context.Context, objects []unstructured.Unstructured) ([]unstructured.Unstructured, error) {
+		olmbundle.WithPostRenderer(func(_ context.Context, objects []unstructured.Unstructured) ([]unstructured.Unstructured, error) {
 			for i := range objects {
 				annotations := objects[i].GetAnnotations()
 				if annotations == nil {
@@ -83,11 +83,11 @@ func TestProcessAppliesPipelineOptions(t *testing.T) {
 
 			return objects, nil
 		}),
-		orb.WithSourceAnnotations(true),
+		olmbundle.WithSourceAnnotations(true),
 	)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	objects, err := renderer.Process(t.Context(), types.Values{"ignored": "by orb"})
+	objects, err := renderer.Process(t.Context(), types.Values{"ignored": "by OLM bundle renderer"})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(selectorCalled).To(BeTrue())
 	g.Expect(objects).To(HaveLen(1))
@@ -95,7 +95,7 @@ func TestProcessAppliesPipelineOptions(t *testing.T) {
 	g.Expect(objects[0].GetLabels()).To(Equal(map[string]string{"test": testValue}))
 	g.Expect(objects[0].GetAnnotations()).To(And(
 		HaveKeyWithValue("post-rendered", "true"),
-		HaveKeyWithValue(types.AnnotationSourceType, "orb"),
+		HaveKeyWithValue(types.AnnotationSourceType, "olm-bundle"),
 		HaveKey(types.AnnotationContentHash),
 	))
 }
@@ -103,7 +103,7 @@ func TestProcessAppliesPipelineOptions(t *testing.T) {
 func TestProcessDoesNotInjectCertificateManagement(t *testing.T) {
 	g := NewWithT(t)
 
-	renderer, err := orb.New([]orb.Source{{
+	renderer, err := olmbundle.New([]olmbundle.Source{{
 		Bundle: webhookBundleRef,
 	}})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -124,9 +124,9 @@ func TestProcessDoesNotInjectCertificateManagement(t *testing.T) {
 func TestCacheReturnsIndependentObjects(t *testing.T) {
 	g := NewWithT(t)
 
-	renderer, err := orb.New([]orb.Source{{
+	renderer, err := olmbundle.New([]olmbundle.Source{{
 		Bundle: simpleBundleRef,
-	}}, orb.WithCache(cache.WithTTL(0)), orb.WithSourceAnnotations(true))
+	}}, olmbundle.WithCache(cache.WithTTL(0)), olmbundle.WithSourceAnnotations(true))
 	g.Expect(err).NotTo(HaveOccurred())
 
 	first, err := renderer.Process(t.Context(), nil)
@@ -144,7 +144,7 @@ func TestContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
-	renderer, err := orb.New([]orb.Source{{Bundle: simpleBundleRef}})
+	renderer, err := olmbundle.New([]olmbundle.Source{{Bundle: simpleBundleRef}})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	_, err = renderer.Process(ctx, nil)

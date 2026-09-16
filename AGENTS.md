@@ -1,6 +1,6 @@
-# Agent Guide: renderer-orb
+# Agent Guide: renderer-olm-bundle
 
-`renderer-orb` renders Operator Lifecycle Manager registry+v1 bundles using
+`renderer-olm-bundle` renders Operator Lifecycle Manager registry+v1 bundles using
 the public `github.com/joelanford/library-olm` API and returns
 `[]unstructured.Unstructured` for the shared manifest pipeline.
 
@@ -12,10 +12,10 @@ the public `github.com/joelanford/library-olm` API and returns
 
 ## Public API
 
-The package is imported from `github.com/k8s-manifest-kit/renderer-orb/pkg`.
+The package is imported from `github.com/k8s-manifest-kit/renderer-olm-bundle/pkg`.
 
-- `orb.New([]orb.Source{...}, opts...)` creates a renderer.
-- `orb.NewEngine(source, opts...)` creates an `engine.Engine` for one source.
+- `olmbundle.New([]olmbundle.Source{...}, opts...)` creates a renderer.
+- `olmbundle.NewEngine(source, opts...)` creates an `engine.Engine` for one source.
 - `Source.Bundle` accepts `docker://`, `oci:`, `oci-archive:`, `dir:`, and
   `tar:` references.
 - Source rendering supports target namespaces, deployment configuration,
@@ -26,7 +26,7 @@ The package is imported from `github.com/k8s-manifest-kit/renderer-orb/pkg`.
   post-renderers, source selectors, caching, source annotations, and content
   hashes.
 
-The renderer deliberately does not expose or invoke Orb's certificate-provider
+The renderer deliberately does not expose or invoke the upstream certificate-provider
 conversion option. Rendering may produce webhook configurations from a bundle,
 but it does not create certificate-management resources or inject CA-management
 annotations.
@@ -47,5 +47,5 @@ Unit tests use checked-in registry+v1 bundle fixtures and Gomega. Remote
 registry validation is performed manually and is not part of the default test
 target.
 
-Do not import Orb's `internal` packages. Keep transport behavior aligned with
-Orb and keep certificate-provider behavior absent.
+Do not import the upstream project's `internal` packages. Keep transport behavior
+aligned with the upstream project and keep certificate-provider behavior absent.

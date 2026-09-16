@@ -1,9 +1,9 @@
-# Orb Renderer Design
+# OLM Bundle Renderer Design
 
 ## Source loading
 
-The renderer follows Orb's registry+v1 source model while using only public
-APIs. It accepts:
+The renderer follows the upstream registry+v1 source model while using only
+public APIs. It accepts:
 
 - `docker://` registry references;
 - `oci:` OCI layout directories;
@@ -12,7 +12,7 @@ APIs. It accepts:
 - `tar:` tar, tar.gz, or other formats recognized by Podman's automatic
   decompressor.
 
-Image sources use the Podman image transport and Orb's signature behavior,
+Image sources use the Podman image transport and the upstream signature behavior,
 then unpack through `library-olm/image/bundle.RegistryV1Handler`. Local
 archives are extracted into temporary directories and removed after parsing.
 Tar extraction rejects absolute paths, parent traversal, links, and files over
@@ -36,7 +36,7 @@ caching is disabled. `WithCache` enables the shared clone-safe cache.
 
 Image credentials are explicit. A missing `Credentials` callback, or a
 callback that returns nil, uses anonymous access. Set
-`Credentials: orb.AmbientCredentials` to explicitly enable the container
+`Credentials: olmbundle.AmbientCredentials` to explicitly enable the container
 image library's ambient credential lookup.
 
 ## Certificate behavior

@@ -1,4 +1,4 @@
-package orb
+package olmbundle
 
 import (
 	"archive/tar"
@@ -25,7 +25,7 @@ func (s *tarBundleSource) Read(ctx context.Context) (registryv1.Bundle, error) {
 const maxTarFileSize = 100 * 1024 * 1024
 
 func readFromTar(ctx context.Context, path string) (registryv1.Bundle, error) {
-	tmpDir, err := os.MkdirTemp("", "orb-tar-")
+	tmpDir, err := os.MkdirTemp("", "olm-bundle-tar-")
 	if err != nil {
 		return registryv1.Bundle{}, fmt.Errorf("creating temporary tar directory: %w", err)
 	}

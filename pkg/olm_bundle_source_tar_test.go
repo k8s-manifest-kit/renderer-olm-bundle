@@ -1,4 +1,4 @@
-package orb
+package olmbundle
 
 import (
 	"archive/tar"

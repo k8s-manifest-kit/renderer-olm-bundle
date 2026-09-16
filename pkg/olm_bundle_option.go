@@ -1,4 +1,4 @@
-package orb
+package olmbundle
 
 import (
 	"github.com/k8s-manifest-kit/engine/pkg/types"

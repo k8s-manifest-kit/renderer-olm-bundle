@@ -1,5 +1,5 @@
-// Package orb renders OLM registry+v1 bundles into Kubernetes manifests.
-package orb
+// Package olmbundle renders OLM registry+v1 bundles into Kubernetes manifests.
+package olmbundle
 
 import (
 	"fmt"
@@ -7,11 +7,11 @@ import (
 	engine "github.com/k8s-manifest-kit/engine/pkg"
 )
 
-// NewEngine creates an Engine configured with a single Orb renderer.
+// NewEngine creates an Engine configured with a single OLM bundle renderer.
 func NewEngine(source Source, opts ...RendererOption) (*engine.Engine, error) {
 	renderer, err := New([]Source{source}, opts...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create orb renderer: %w", err)
+		return nil, fmt.Errorf("failed to create OLM bundle renderer: %w", err)
 	}
 
 	e, err := engine.New(engine.WithRenderer(renderer))

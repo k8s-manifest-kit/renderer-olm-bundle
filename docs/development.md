@@ -1,4 +1,4 @@
-# Orb Renderer Development
+# OLM Bundle Renderer Development
 
 Use Go 1.26.8 and run:
 
@@ -22,4 +22,4 @@ and network-independent.
 
 Native Podman/GPGME dependencies are required for image transport tests. Local
 `dir:` and `tar:` tests do not need a registry. Keep the renderer dependent on
-public Orb/library-olm APIs; do not reach into `joelanford/orb/internal`.
+public OLM bundle/library-olm APIs; do not reach into `joelanford/orb/internal`.

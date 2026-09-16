@@ -1,4 +1,4 @@
-package orb
+package olmbundle
 
 import (
 	"context"
@@ -115,7 +115,7 @@ func readFromImage(
 		return registryv1.Bundle{}, err
 	}
 
-	tmpDir, err := os.MkdirTemp("", "orb-bundle-")
+	tmpDir, err := os.MkdirTemp("", "olm-bundle-")
 	if err != nil {
 		return registryv1.Bundle{}, fmt.Errorf("creating temporary bundle directory: %w", err)
 	}

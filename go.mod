@@ -1,4 +1,4 @@
-module github.com/k8s-manifest-kit/renderer-orb
+module github.com/k8s-manifest-kit/renderer-olm-bundle
 
 go 1.26.8
 
