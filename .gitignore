@@ -1,0 +1,24 @@
+# Go vendor
+/vendor
+/github.com
+
+# Binary files
+bin/
+*.exe
+*.test
+*.out
+
+# Released packages
+*.tar.gz
+sbom.json
+
+# IDEs
+.idea
+*.iml
+.vscode
+.cursor
+.DS_Store
+
+# Temporary files
+coverage
+coverage.out

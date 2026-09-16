@@ -1,0 +1,47 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: webhook-operator.v1.0.0
+spec:
+  displayName: Webhook Operator
+  description: A webhook bundle used to verify certificate-free rendering.
+  version: 1.0.0
+  installModes:
+    - type: AllNamespaces
+      supported: true
+  install:
+    strategy: deployment
+    spec:
+      deployments:
+        - name: webhook-operator
+          spec:
+            selector:
+              matchLabels:
+                app: webhook-operator
+            template:
+              metadata:
+                labels:
+                  app: webhook-operator
+              spec:
+                serviceAccountName: webhook-operator
+                containers:
+                  - name: operator
+                    image: quay.io/example/webhook-operator:v1.0.0
+                    imagePullPolicy: IfNotPresent
+  webhookdefinitions:
+    - generateName: webhook-operator-validating
+      type: ValidatingAdmissionWebhook
+      deploymentName: webhook-operator
+      containerPort: 443
+      sideEffects: None
+      admissionReviewVersions:
+        - v1
+      rules:
+        - operations:
+            - CREATE
+          apiGroups:
+            - apps
+          apiVersions:
+            - v1
+          resources:
+            - deployments

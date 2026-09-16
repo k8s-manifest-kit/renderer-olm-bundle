@@ -1,0 +1,30 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  name: simple-operator.v1.0.0
+spec:
+  displayName: Simple Operator
+  description: A minimal bundle used by renderer-orb tests.
+  version: 1.0.0
+  installModes:
+    - type: AllNamespaces
+      supported: true
+  install:
+    strategy: deployment
+    spec:
+      deployments:
+        - name: simple-operator
+          spec:
+            selector:
+              matchLabels:
+                app: simple-operator
+            template:
+              metadata:
+                labels:
+                  app: simple-operator
+              spec:
+                serviceAccountName: simple-operator
+                containers:
+                  - name: operator
+                    image: quay.io/example/simple-operator:v1.0.0
+                    imagePullPolicy: IfNotPresent
