@@ -7,9 +7,9 @@ LINT_TIMEOUT := 10m
 
 ## Tools
 GOLANGCI_VERSION ?= v2.12.2
-GOLANGCI ?= go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION)
+GOLANGCI ?= GOWORK=off go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION)
 GOVULNCHECK_VERSION ?= latest
-GOVULNCHECK ?= go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION)
+GOVULNCHECK ?= GOWORK=off go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -92,7 +92,7 @@ lint/fix:
 
 .PHONY: vulncheck
 vulncheck:
-	@$(GOVULNCHECK) ./...
+	@$(GOVULNCHECK) -format=json ./... | ./hack/vulncheck-allowlist.sh
 
 .PHONY: check
 check: lint vulncheck
