@@ -33,7 +33,7 @@ annotations.
 
 ## Development
 
-Use Go 1.26.8 and run commands from this directory:
+Use Go 1.27.2 and run commands from this directory:
 
 ```bash
 make test
