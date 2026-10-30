@@ -1,6 +1,6 @@
 module github.com/k8s-manifest-kit/renderer-olm-bundle
 
-go 1.27.2
+go 1.27.3
 
 require (
 	github.com/joelanford/library-olm v0.0.0-20260916202259-94f8bb50ea30
