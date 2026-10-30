@@ -7,10 +7,12 @@ set -euo pipefail
 # paths. GO-2026-5932 is reported only at module level: the renderer uses the
 # maintained ProtonMail OpenPGP fork instead of golang.org/x/crypto/openpgp,
 # but a transitive dependency still requires the x/crypto module.
-# Keep this list narrow: any new advisory must fail the check.
+# GO-2026-6791 (CVE-2026-95837) likewise affects the containerd v1 CRI plugin
+# checkpoint restore path and has no v1 fix; only containerd v2.2.7/v2.3.4
+# fix it. Keep this list narrow: any new advisory must fail the check.
 is_allowed() {
 	case "$1" in
-		GO-2026-5064|GO-2026-5338|GO-2026-5622|GO-2026-5932)
+		GO-2026-5064|GO-2026-5338|GO-2026-5622|GO-2026-5932|GO-2026-6791)
 			return 0
 			;;
 		*)
