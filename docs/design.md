@@ -32,7 +32,12 @@ its normal bundle behavior. `TargetNamespaces`, when explicitly supplied,
 continues to control operator scope and generated webhook selectors.
 
 By default content hashes are enabled, source annotations are disabled, and
-caching is disabled. `WithCache` enables the shared clone-safe cache.
+caching is disabled. `WithCache` enables the shared clone-safe cache. The
+cache constructor and bundle key spec live in
+`github.com/k8s-manifest-kit/renderer-olm-bundle/pkg/cache` (`cache.New`,
+`cache.OLMBundleSpec`); unlike the sibling renderers, one renderer-wide cache
+is shared by all sources of a renderer, and custom key functions therefore
+discriminate across that single cache rather than within per-source caches.
 
 Image credentials are explicit. A missing `Credentials` callback, or a
 callback that returns nil, uses anonymous access. Set

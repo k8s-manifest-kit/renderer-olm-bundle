@@ -8,10 +8,12 @@ import (
 	registryv1 "github.com/joelanford/library-olm/bundle/registry/v1"
 	"github.com/k8s-manifest-kit/engine/pkg/pipeline"
 	"github.com/k8s-manifest-kit/engine/pkg/types"
-	"github.com/k8s-manifest-kit/pkg/util/cache"
+	utilcache "github.com/k8s-manifest-kit/pkg/util/cache"
 	"github.com/k8s-manifest-kit/pkg/util/k8s"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+
+	"github.com/k8s-manifest-kit/renderer-olm-bundle/pkg/cache"
 )
 
 const rendererType = "olm-bundle"
@@ -73,7 +75,7 @@ type SourceSelector = func(ctx context.Context, source Source) (bool, error)
 type Renderer struct {
 	inputs []*sourceHolder
 	opts   RendererOptions
-	cache  cache.Interface[[]unstructured.Unstructured]
+	cache  utilcache.Interface[[]unstructured.Unstructured]
 }
 
 // New creates a new OLM bundle renderer with the given inputs and options.
@@ -101,7 +103,7 @@ func New(inputs []Source, opts ...RendererOption) (*Renderer, error) {
 	return &Renderer{
 		inputs: holders,
 		opts:   rendererOpts,
-		cache:  newCache(rendererOpts.CacheOptions),
+		cache:  cache.New(rendererOpts.CacheOptions),
 	}, nil
 }
 
@@ -151,7 +153,7 @@ func (r *Renderer) renderSingle(ctx context.Context, holder *sourceHolder) ([]un
 		return nil, fmt.Errorf("context cancelled before render: %w", err)
 	}
 
-	spec := olmBundleSpec{
+	spec := cache.OLMBundleSpec{
 		Bundle:           holder.Bundle,
 		TargetNamespaces: slices.Clone(holder.TargetNamespaces),
 		DeploymentConfig: holder.DeploymentConfig,

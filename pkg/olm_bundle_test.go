@@ -7,12 +7,13 @@ import (
 	"testing"
 
 	"github.com/k8s-manifest-kit/engine/pkg/types"
-	"github.com/k8s-manifest-kit/pkg/util/cache"
+	utilcache "github.com/k8s-manifest-kit/pkg/util/cache"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	olmbundle "github.com/k8s-manifest-kit/renderer-olm-bundle/pkg"
+	"github.com/k8s-manifest-kit/renderer-olm-bundle/pkg/cache"
 
 	. "github.com/onsi/gomega"
 )
@@ -150,7 +151,7 @@ func TestCacheReturnsIndependentObjects(t *testing.T) {
 
 	renderer, err := olmbundle.New([]olmbundle.Source{{
 		Bundle: simpleBundleRef,
-	}}, olmbundle.WithCache(cache.WithTTL(0)), olmbundle.WithSourceAnnotations(true))
+	}}, olmbundle.WithCache(utilcache.WithTTL(0)), olmbundle.WithSourceAnnotations(true))
 	g.Expect(err).NotTo(HaveOccurred())
 
 	first, err := renderer.Process(t.Context(), nil)
@@ -161,6 +162,49 @@ func TestCacheReturnsIndependentObjects(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(second[0].GetName()).NotTo(Equal("mutated"))
 	g.Expect(second[0].GetAnnotations()).To(HaveKeyWithValue(types.AnnotationRenderOrigin, types.RenderOriginCache))
+}
+
+func TestCacheCustomKeyCallback(t *testing.T) {
+	g := NewWithT(t)
+
+	var specs []cache.OLMBundleSpec
+
+	// The simple bundle only supports AllNamespaces, so the source keeps its
+	// default scope and the callback asserts the fixture's effective fields.
+	renderer, err := olmbundle.New([]olmbundle.Source{{
+		Bundle: simpleBundleRef,
+	}},
+		olmbundle.WithCache(utilcache.WithKeyFunc(func(key any) string {
+			if spec, ok := key.(cache.OLMBundleSpec); ok {
+				specs = append(specs, spec)
+			}
+
+			return utilcache.DefaultKeyFunc(key)
+		})),
+		olmbundle.WithSourceAnnotations(true),
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	first, err := renderer.Process(t.Context(), nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(first).NotTo(BeEmpty())
+
+	// The default key covers the whole spec, so the second render hits the
+	// renderer-wide cache through the custom key function.
+	second, err := renderer.Process(t.Context(), nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(second[0].GetAnnotations()).To(HaveKeyWithValue(types.AnnotationRenderOrigin, types.RenderOriginCache))
+
+	// The renderer's key function receives the exported spec shape with the
+	// source's bundle identity and settings.
+	g.Expect(specs).NotTo(BeEmpty())
+	for _, spec := range specs {
+		g.Expect(spec.Bundle).To(Equal(simpleBundleRef))
+		g.Expect(spec.TargetNamespaces).To(BeEmpty())
+		g.Expect(spec.DeploymentConfig).To(BeNil())
+		g.Expect(spec.TLSVerify).To(BeFalse())
+		g.Expect(spec.CertDir).To(BeEmpty())
+	}
 }
 
 func TestContextCancellation(t *testing.T) {

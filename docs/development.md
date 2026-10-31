@@ -20,7 +20,8 @@ layout.
 - `pkg/olm_bundle.go` — bundle rendering and renderer orchestration.
 - `pkg/olm_bundle_option.go` — renderer options and defaults.
 - `pkg/olm_bundle_support.go` — shared implementation helpers.
-- `pkg/olm_bundle_cache.go` — output-cache construction and cache keys.
+- `pkg/cache/` — `cache.New` and `cache.OLMBundleSpec` for output-cache
+  construction and cache keys.
 - `pkg/olm_bundle_source.go` — the source model and transport dispatch.
 - `pkg/olm_bundle_source_directory.go`, `pkg/olm_bundle_source_image.go`,
   `pkg/olm_bundle_source_tar.go` — directory, image, and tar transports.
