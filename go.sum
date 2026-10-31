@@ -248,10 +248,10 @@ github.com/joelanford/library-olm v0.0.0-20260916202259-94f8bb50ea30 h1:duJjkp6n
 github.com/joelanford/library-olm v0.0.0-20260916202259-94f8bb50ea30/go.mod h1:40khHaNEHDVS6yNIH+Ix96FTjDdeqBgmCOZcrG3SMHY=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
-github.com/k8s-manifest-kit/engine v0.2.1-0.20261011173717-6312a8bcbdff h1:2kujdqUY97xN7iMp7Kxf3Fs/FYn9yuH3ah0z6LgWuT0=
-github.com/k8s-manifest-kit/engine v0.2.1-0.20261011173717-6312a8bcbdff/go.mod h1:EoTQ1Jz1zrzQlZhpXEcEX2QV4sFv0zc+tV+yiVaq+Ww=
-github.com/k8s-manifest-kit/pkg v0.2.1-0.20261011171852-68da66919805 h1:oIFuigRtzUSCKbU0EitMneKnbVsvTeA3/3wpreRe8f0=
-github.com/k8s-manifest-kit/pkg v0.2.1-0.20261011171852-68da66919805/go.mod h1:AZ1MwpCGUYRlkZebFJDB2AJB9AXtMijjfJUYCxZWPsU=
+github.com/k8s-manifest-kit/engine v0.2.1-0.20261031162530-ca45db38c73b h1:LggFJUBTXW5xtqqLabgbGXvEgk7lIVD138CcizC51EI=
+github.com/k8s-manifest-kit/engine v0.2.1-0.20261031162530-ca45db38c73b/go.mod h1:bPAVsmTZuKQWl4dNI3fjtg9SW/9tWgduytBC8D8Quto=
+github.com/k8s-manifest-kit/pkg v0.2.1-0.20261031162336-25c87f9aadec h1:Tjj2HotoNu0wUf2X7CRmBr97os+wRbo+XXUWVSy5Qzo=
+github.com/k8s-manifest-kit/pkg v0.2.1-0.20261031162336-25c87f9aadec/go.mod h1:oGCeCiuisbK8CYm3DahxrYJbzi7l8PD4sIK6l3vqzW0=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.19.1 h1:VsB4HPswih7mmZ8WleSFQ75c/Ui1M4trX5oAsJnhSlk=

@@ -15,6 +15,22 @@ pipeline, caching, tar input, cancellation, and the certificate-free webhook
 path. Fixtures live under `config/test/bundles` and follow registry+v1 bundle
 layout.
 
+## Package layout
+
+- `pkg/olm_bundle.go` — bundle rendering and renderer orchestration.
+- `pkg/olm_bundle_option.go` — renderer options and defaults.
+- `pkg/olm_bundle_support.go` — shared implementation helpers.
+- `pkg/olm_bundle_cache.go` — output-cache construction and cache keys.
+- `pkg/olm_bundle_source.go` — the source model and transport dispatch.
+- `pkg/olm_bundle_source_directory.go`, `pkg/olm_bundle_source_image.go`,
+  `pkg/olm_bundle_source_tar.go` — directory, image, and tar transports.
+- `pkg/engine.go` — the `NewEngine` convenience constructor.
+
+Renderer options are typed by the shared
+`github.com/k8s-manifest-kit/pkg/util/option` package. The layout follows
+the shared [`project-layout.md`](../../docs/project-layout.md) convention
+(workspace navigation).
+
 Remote registry validation is intentionally not part of the default test
 suite. The implementation was manually validated against an OperatorHub
 bundle; committed tests use local fixtures so `make test` remains deterministic
