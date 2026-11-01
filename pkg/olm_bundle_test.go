@@ -146,6 +146,10 @@ func TestProcessDoesNotInjectCertificateManagement(t *testing.T) {
 	}
 }
 
+// TestCacheReturnsIndependentObjects verifies renderer-level cache
+// behavior: cached output is cloned per retrieval and hits carry the cache
+// render-origin annotation. Unit tests of the cache constructor and
+// OLMBundleSpec live in pkg/cache.
 func TestCacheReturnsIndependentObjects(t *testing.T) {
 	g := NewWithT(t)
 
@@ -164,6 +168,10 @@ func TestCacheReturnsIndependentObjects(t *testing.T) {
 	g.Expect(second[0].GetAnnotations()).To(HaveKeyWithValue(types.AnnotationRenderOrigin, types.RenderOriginCache))
 }
 
+// TestCacheCustomKeyCallback verifies renderer-level cache behavior: the
+// shared key function receives the exported cache.OLMBundleSpec and the
+// renderer-wide cache serves repeated renders. Unit tests of the cache
+// constructor live in pkg/cache.
 func TestCacheCustomKeyCallback(t *testing.T) {
 	g := NewWithT(t)
 
