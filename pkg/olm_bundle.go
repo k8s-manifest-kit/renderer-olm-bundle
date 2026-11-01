@@ -223,16 +223,22 @@ func (r *Renderer) credentials(ctx context.Context, holder *sourceHolder) (*Cred
 }
 
 func (r *Renderer) annotate(objects []unstructured.Unstructured, bundle, origin string) {
-	for i := range objects {
-		if r.opts.SourceAnnotations && bundle != "" {
-			k8s.SetAnnotation(&objects[i], types.AnnotationSourceType, rendererType)
-			k8s.SetAnnotation(&objects[i], types.AnnotationSourcePath, bundle)
-		}
-		if r.opts.ContentHash && bundle != "" {
-			types.SetContentHash(&objects[i])
-		}
-		if r.opts.SourceAnnotations && origin != "" {
-			types.SetRenderOrigin(&objects[i], origin)
-		}
+	var opts []types.AnnotationOption
+
+	if r.opts.SourceAnnotations && bundle != "" {
+		opts = append(opts, types.WithSourceAnnotations(map[string]string{
+			types.AnnotationSourceType: rendererType,
+			types.AnnotationSourcePath: bundle,
+		}))
 	}
+
+	if r.opts.ContentHash && bundle != "" {
+		opts = append(opts, types.WithContentHash(true))
+	}
+
+	if r.opts.SourceAnnotations && origin != "" {
+		opts = append(opts, types.WithRenderOrigin(origin))
+	}
+
+	types.AnnotateObjects(objects, opts...)
 }
