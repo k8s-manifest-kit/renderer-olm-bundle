@@ -43,7 +43,10 @@ make lint/fix
 make check
 ```
 
-Unit tests use checked-in registry+v1 bundle fixtures and Gomega. Remote
+Unit tests use checked-in registry+v1 bundle fixtures and Gomega. Keep tests
+focused and simple: use the smallest local bundle, directory, or tar fixture
+that proves the behavior, and add image or registry infrastructure only when
+a concrete transport contract requires it. Remote
 registry validation is performed manually and is not part of the default test
 target.
 

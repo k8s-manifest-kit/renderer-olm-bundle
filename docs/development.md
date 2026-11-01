@@ -40,3 +40,15 @@ and network-independent.
 Native Podman/GPGME dependencies are required for image transport tests. Local
 `dir:` and `tar:` tests do not need a registry. Keep the renderer dependent on
 public OLM bundle/library-olm APIs; do not reach into `joelanford/orb/internal`.
+
+## Test simplicity
+
+Use the simplest test that proves the contract under test. Don't re-test
+library or standard-library internals, and don't add helpers, mocks,
+instrumentation, subprocesses, or extra test files unless a concrete behavior
+or regression requires them. Keep small suites cohesive in one test file, and
+prefer the smallest relevant local bundle, `dir:`, or `tar:` fixture — the
+checked-in `config/test/bundles` fixtures come first. Image or registry
+infrastructure belongs in a test only when a concrete transport contract
+needs it. Existing coverage, offline defaults, the native dependency notes
+above, and the public dependency API boundary are unchanged by this rule.
